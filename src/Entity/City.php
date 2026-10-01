@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use App\Dto\City\CityListOutput;
 use App\Entity\Impl\AbstractEntity;
 use App\Repository\CityRepository;
@@ -21,6 +22,8 @@ use Symfony\Component\Uid\Uuid;
         output: CityListOutput::class,
         // le contrat ne déclare pas de pagination sur cette liste
         paginationEnabled: false,
+        // on cherche une ville sans être connecté : le contrat déclare l'opération publique
+        openapi: new OpenApiOperation(security: []),
         // les deux paramètres du contrat, avec leur schéma : la validation en découle
         parameters: [
             'q' => new QueryParameter(

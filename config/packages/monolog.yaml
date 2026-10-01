@@ -1,6 +1,7 @@
 monolog:
-    channels: # To see all channels, run bin/console debug:autowiring logger
+    channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
+        - domain # le canal du domaine : ce que notre code raconte, pas ce que le framework raconte
 
 when@dev:
     monolog:
@@ -9,7 +10,12 @@ when@dev:
                 type: stream
                 path: "%kernel.logs_dir%/%kernel.environment%.log"
                 level: debug
-                channels: ["!event"]
+                channels: ["!event", "!domain"]
+            domain:
+                type: stream
+                path: "%kernel.logs_dir%/domain.log"
+                level: info
+                channels: [domain]
             console:
                 type: console
                 process_psr_3_messages: false

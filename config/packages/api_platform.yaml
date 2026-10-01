@@ -7,6 +7,12 @@ api_platform:
             vary: ['Content-Type', 'Authorization', 'Origin']
         normalization_context:
             skip_null_values: false
+    swagger:
+        http_auth:
+            bearerAuth:
+                scheme: bearer
+                bearerFormat: JWT
+        persist_authorization: true
     formats:
         json: ['application/json']
     docs_formats:
@@ -14,3 +20,5 @@ api_platform:
         html: ['text/html']
     error_formats:
         jsonproblem: ['application/problem+json']
+    exception_to_status:
+        App\Exception\User\EmailAlreadyUsedException: 409

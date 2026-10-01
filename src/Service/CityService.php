@@ -4,9 +4,7 @@ namespace App\Service;
 
 use App\Dto\City\CityListOutput;
 use App\Entity\City;
-use App\Exception\City\CityNotFoundException;
 use App\Repository\CityRepository;
-use Symfony\Component\Uid\Uuid;
 
 class CityService
 {
@@ -16,12 +14,7 @@ class CityService
     // le repository n'est pas construit ici, il est demandé au conteneur
     public function __construct(
         private readonly CityRepository $cities,
-    )
-    {
-    }
-
-    public function toList(City $city): CityListOutput {
-        return new CityListOutput($city->getId(), $city->getName());
+    ) {
     }
 
     /**
@@ -44,4 +37,11 @@ class CityService
         return $this->cities->search($pattern, $boundedLimit);
     }
 
+    /**
+     * Maps a city onto the payload served by the collection endpoint.
+     */
+    public function toList(City $city): CityListOutput
+    {
+        return new CityListOutput($city->getId(), $city->getName());
+    }
 }

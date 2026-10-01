@@ -25,11 +25,12 @@ class CityCollectionProvider implements ProviderInterface
         // API Platform dépose les paramètres de requête dans le contexte, sous la clé « filters »
         $filters = $context['filters'] ?? [];
 
-        $query = trim($filters['q'] ?? '');
-        $limit = (int) ($filters['limit'] ?? $this->cityService::DEFAULT_LIMIT);
-
-        $cities = $this->cityService->search($query, $limit);
-
-        return array_map($this->cityService->toList(...), $cities);
+        return array_map(
+            $this->cityService->toList(...),
+            $this->cityService->search(
+                $filters['q'] ?? null,
+                isset($filters['limit']) ? (int) $filters['limit'] : null,
+            ),
+        );
     }
 }
