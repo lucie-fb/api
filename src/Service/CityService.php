@@ -4,7 +4,9 @@ namespace App\Service;
 
 use App\Dto\City\CityListOutput;
 use App\Entity\City;
+use App\Exception\City\CityNotFoundException;
 use App\Repository\CityRepository;
+use Symfony\Component\Uid\Uuid;
 
 class CityService
 {
@@ -44,4 +46,20 @@ class CityService
     {
         return new CityListOutput($city->getId(), $city->getName());
     }
+
+    /**
+     * @throws CityNotFoundException when no city carries this identifier
+     */
+    public function findOneById(Uuid $id): City {
+        // find() est héritée de Doctrine : rien à écrire dans le repository pour un accès par clé
+        $city = $this->cities->find($id);
+
+        if (null === $city) {
+            throw new CityNotFoundException();
+        }
+
+        return $city;
+    }
+
+
 }

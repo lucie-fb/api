@@ -2,15 +2,56 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
+use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
+use App\Dto\Trip\TripDetailsOutput;
+use App\Dto\Trip\TripListOutput;
+use App\Dto\Trip\TripSearchInput;
 use App\Entity\Enum\CatapultModel;
 use App\Entity\Impl\AbstractEntity;
 use App\Repository\TripRepository;
+use App\State\Trip\TripItemProvider;
+use App\State\Trip\TripSearchProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: TripRepository::class)]
+#[ApiResource(operations: [
+    new Post(
+        uriTemplate: '/trips/search',
+        // un Post répond 201 par défaut : cette recherche ne crée rien, le contrat n'y déclare qu'un 200
+        status: 200,
+        input: TripSearchInput::class,
+        output: TripListOutput::class,
+        processor: TripSearchProcessor::class,
+        // on cherche un lancer sans être connecté : le contrat déclare l'opération publique
+        openapi: new OpenApiOperation(
+            security: [],
+            // le générateur déduit la réponse du `output:`, qui nomme une classe et non un tableau :
+            // il annonce un objet unique là où l'API rend une liste. On corrige la documentation.
+            responses: ['200' => new OpenApiResponse(
+                description: 'Les lancers disponibles',
+                content: new \ArrayObject(['application/json' => ['schema' => [
+                    'type' => 'array',
+                    // le nom généré du schéma, composé du shortName de la ressource et de la classe de sortie
+                    'items' => ['$ref' => '#/components/schemas/Trip.TripListOutput'],
+                ]]]),
+            )],
+        ),
+    ),
+    new Get(
+        uriTemplate: '/trips/{id}',
+        output: TripDetailsOutput::class,
+        provider: TripItemProvider::class,
+        // on consulte un lancer sans être connecté : le contrat déclare l'opération publique
+        openapi: new OpenApiOperation(security: []),
+    ),
+])]
 class Trip extends AbstractEntity
 {
     #[ORM\Id]
@@ -52,5 +93,94 @@ class Trip extends AbstractEntity
     public function __construct()
     {
         $this->id = Uuid::v7();
+    }
+
+    public function getId(): Uuid
+    {
+        return $this->id;
+    }
+
+    public function getOrigin(): ?City
+    {
+        return $this->origin;
+    }
+
+    public function setOrigin(City $origin): static
+    {
+        $this->origin = $origin;
+
+        return $this;
+    }
+
+    public function getDestination(): ?City
+    {
+        return $this->destination;
+    }
+
+    public function setDestination(City $destination): static
+    {
+        $this->destination = $destination;
+
+        return $this;
+    }
+
+    public function getDepartureAt(): ?\DateTimeImmutable
+    {
+        return $this->departureAt;
+    }
+
+    public function setDepartureAt(\DateTimeImmutable $departureAt): static
+    {
+        $this->departureAt = $departureAt;
+
+        return $this;
+    }
+
+    public function getDuration(): ?int
+    {
+        return $this->duration;
+    }
+
+    public function setDuration(int $duration): static
+    {
+        $this->duration = $duration;
+
+        return $this;
+    }
+
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+
+    public function setPrice(int $price): static
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    public function getCatapultModel(): ?CatapultModel
+    {
+        return $this->catapultModel;
+    }
+
+    public function setCatapultModel(CatapultModel $catapultModel): static
+    {
+        $this->catapultModel = $catapultModel;
+
+        return $this;
+    }
+
+    public function getBoardingInfo(): ?string
+    {
+        return $this->boardingInfo;
+    }
+
+    public function setBoardingInfo(string $boardingInfo): static
+    {
+        $this->boardingInfo = $boardingInfo;
+
+        return $this;
     }
 }

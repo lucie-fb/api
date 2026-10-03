@@ -2,7 +2,10 @@
 
 namespace App\Exception\User;
 
-class EmailAlreadyUsedException extends \RuntimeException
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
+class EmailAlreadyUsedException extends HttpException
 {
     /**
      * Signals a registration refused because the email is already taken.
@@ -11,6 +14,8 @@ class EmailAlreadyUsedException extends \RuntimeException
     {
         // le message ne porte pas l'adresse : il finirait dans le journal,
         // que la règle de cette étape veut vide de toute donnée personnelle
-        parent::__construct('This email address is already registered.');
+        parent::__construct(
+            Response::HTTP_NOT_FOUND,
+            'This email address is already registered.');
     }
 }
