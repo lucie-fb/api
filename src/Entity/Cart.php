@@ -2,15 +2,60 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use App\Dto\Cart\CartAddLineInput;
+use App\Dto\Cart\CartDetailsOutput;
 use App\Entity\Enum\CartStatus;
 use App\Entity\Impl\AbstractEntity;
 use App\Repository\CartRepository;
+use App\State\Cart\CartCollectionProvider;
+use App\State\Cart\CartOpenProcessor;
+use App\State\Cart\CartProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
+#[ApiResource(operations: [
+    new Post(
+        uriTemplate: '/carts',
+        // le contrat n'envoie aucun corps sur cette adresse : il n'y a rien à désérialiser
+        input: false,
+        output: CartDetailsOutput::class,
+        processor: CartOpenProcessor::class,
+        // toutes les opérations du panier exigent un jeton, comme `/users/me` à l'étape 5
+        security: "is_granted('ROLE_USER')",
+    ),
+    new GetCollection(
+        uriTemplate: '/carts',
+        paginationClientEnabled: false,
+        output: CartDetailsOutput::class,
+        provider: CartCollectionProvider::class,
+        security: "is_granted('ROLE_USER')",
+    ),
+    new Post(
+        uriTemplate: '/carts/{id}/items',
+        input: CartAddLineInput::class,
+        output: CartDetailsOutput::class,
+        provider: CartProvider::class,
+        processor: CartAddLineProcessor::class,
+        // le rendez-vous suivant explique cette ligne et la met à l'épreuve
+        security: "object.getCreatedBy() == user",
+        #openapi: new OpenApiOperation(
+          #  summary: 'Adds a line to the cart'
+        #)
+    ),
+    new Delete(
+        uriTemplate: '/carts/{id}/items/{itemId}',
+        provider: CartProvider::class,
+        processor: CartRemoveLineProcessor::class,
+        security: "object.getCreatedBy() == user",
+    ),
+])]
 #[ORM\Entity(repositoryClass: CartRepository::class)]
 class Cart extends AbstractEntity
 {
@@ -41,8 +86,33 @@ class Cart extends AbstractEntity
         $this->items = new ArrayCollection();
     }
 
-    public function addItem(CartItem $item): static{
-        $this->items->add($item);
+    public function getId(): Uuid
+    {
+        return $this->id;
+    }
+
+    public function getStatus(): CartStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(CartStatus $status): static
+    {
+        $this->status = $status;
         return $this;
     }
+
+    public function getItems(): Collection
+    {
+        return $this->items;
+    }
+
+    public function addItem(CartItem $item): static
+    {
+        $this->items->add($item);
+        $item->setCart($this);
+
+        return $this;
+    }
+
 }
