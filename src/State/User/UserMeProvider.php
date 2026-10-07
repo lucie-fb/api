@@ -4,10 +4,14 @@ namespace App\State\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Dto\User\UserDetailsOutput;
 use App\Entity\User;
 use App\Service\UserService;
 use Symfony\Bundle\SecurityBundle\Security;
 
+/**
+ * @implements ProviderInterface<UserDetailsOutput>
+ */
 final class UserMeProvider implements ProviderInterface
 {
     public function __construct(
@@ -19,7 +23,7 @@ final class UserMeProvider implements ProviderInterface
     /**
      * Resolves the authenticated bearer to their own detailed representation.
      */
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): null|UserDetailsOutput
     {
         $user = $this->security->getUser();
 

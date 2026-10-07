@@ -1,29 +1,29 @@
 <?php
 
-namespace App\State\Cart;
+namespace App\State\Ticket;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Dto\Cart\CartDetailsOutput;
+use App\Dto\Ticket\TicketListOutput;
 use App\Entity\User;
-use App\Service\CartService;
+use App\Service\TicketService;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
- * @implements ProviderInterface<CartDetailsOutput>
+ * @implements ProviderInterface<TicketListOutput>
  */
-final class CartCollectionProvider implements ProviderInterface
+final class TicketCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private readonly Security $security,
-        private readonly CartService $cartService,
+        private readonly TicketService $ticketService,
     ) {
     }
 
     /**
-     * Serves the pending cart of the authenticated traveller, as a collection of zero or one.
+     * Serves the tickets of the authenticated traveller, most recent first.
      *
-     * @return CartDetailsOutput[]
+     * @return TicketListOutput[]
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
@@ -34,9 +34,7 @@ final class CartCollectionProvider implements ProviderInterface
             return [];
         }
 
-        $cart = $this->cartService->findActiveFor($user);
-
         // un state ne fabrique aucun DTO : il appelle la méthode du service qui le fabrique
-        return array_map($this->cartService->toDetails(...), null === $cart ? [] : [$cart]);
+        return array_map($this->ticketService->toList(...), $this->ticketService->findFor($user));
     }
 }

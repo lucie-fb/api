@@ -2,8 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\Trip;
 use App\Entity\City;
+use App\Entity\Trip;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,27 +17,28 @@ class TripRepository extends ServiceEntityRepository
         parent::__construct($registry, Trip::class);
     }
 
-    /** @return Trip[]
-     * @throws \DateMalformedStringException
+    /**
+     * Returns the trips flying the given route on the given day, ordered by departure time.
+     *
+     * @return Trip[]
      */
-    public function search(City $origin, City $destination, \DateTimeImmutable $day): array{
-
+    public function search(City $origin, City $destination, \DateTimeImmutable $day): array
+    {
+        // égalité de date impossible : departureAt porte une heure, on borne donc sur l'intervalle du jour
         $start = $day->setTime(0, 0);
         $end = $start->modify('+1 day');
+
         return $this->createQueryBuilder('t')
             ->andWhere('t.origin = :origin')
-            ->setParameter('origin', $origin)
             ->andWhere('t.destination = :destination')
-            ->setParameter('destination', $destination)
             ->andWhere('t.departureAt >= :start')
+            ->andWhere('t.departureAt < :end')
+            ->setParameter('origin', $origin)
+            ->setParameter('destination', $destination)
             ->setParameter('start', $start)
-            ->andWhere('t.departureAt <= :end')
             ->setParameter('end', $end)
             ->orderBy('t.departureAt', 'ASC')
             ->getQuery()
             ->getResult();
-
-
     }
-
 }

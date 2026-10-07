@@ -51,9 +51,9 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     'content' => new \ArrayObject([
                         'application/json' => ['schema' => [
                             'type' => 'object',
-                            'required' => ['accessToken', 'refreshToken'],
+                            'required' => ['token', 'refreshToken'],
                             'properties' => [
-                                'accessToken' => ['type' => 'string'],
+                                'token' => ['type' => 'string'],
                                 'refreshToken' => ['type' => 'string'],
                             ],
                         ]],
@@ -64,7 +64,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             security: [],
         )));
 
-        // le jeton de renouvellement n'est pas renouvelé : seul un nouveau jeton d'accès revient
+        // le jeton de renouvellement est à usage unique : chaque renouvellement en délivre un nouveau
         $paths->addPath('/api/auth/refresh', new PathItem(post: new Operation(
             operationId: 'refresh',
             tags: ['Authentification'],
@@ -87,9 +87,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     'content' => new \ArrayObject([
                         'application/json' => ['schema' => [
                             'type' => 'object',
-                            'required' => ['accessToken'],
+                            'required' => ['token', 'refreshToken'],
                             'properties' => [
-                                'accessToken' => ['type' => 'string'],
+                                'token' => ['type' => 'string'],
+                                'refreshToken' => ['type' => 'string'],
                             ],
                         ]],
                     ]),

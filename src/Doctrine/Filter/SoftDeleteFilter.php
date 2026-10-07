@@ -7,12 +7,19 @@ use Doctrine\ORM\Query\Filter\SQLFilter;
 
 final class SoftDeleteFilter extends SQLFilter
 {
+    /**
+     * Hides soft-deleted rows from every query Doctrine builds.
+     */
     public function addFilterConstraint(ClassMetadata $targetEntity, string $targetTableAlias): string
     {
+        // Doctrine appelle cette méthode pour chaque entité de chaque requête, y compris celles
+        // qui ne portent aucune date de suppression : une chaîne vide n'ajoute rien
         if (!$targetEntity->hasField('deletedAt')) {
             return '';
         }
 
-        return sprintf('%s.deletedAt IS NULL', $targetTableAlias, $targetTableAlias);
+        // le nom est celui de la colonne en base, pas celui de la propriété PHP : ce fragment
+        // part tel quel dans le SQL
+        return sprintf('%s.deleted_at IS NULL', $targetTableAlias);
     }
 }

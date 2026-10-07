@@ -6,29 +6,28 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\Cart\CartAddLineInput;
 use App\Dto\Cart\CartDetailsOutput;
-use App\Entity\User;
 use App\Service\CartService;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * @implements ProcessorInterface<CartAddLineInput, CartDetailsOutput>
  */
-final readonly class CartAddLineProcessor implements ProcessorInterface
+final class CartAddLineProcessor implements ProcessorInterface
 {
     public function __construct(
-        private Security    $security,
-        private CartService $cartService,
+        private readonly CartService $cartService,
     ) {
     }
 
     /**
-     * Serves the pending cart of the authenticated traveller, opening one when there is none.
+     * Adds the submitted line to the cart carried by the URL, and serves the cart it belongs to.
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): CartDetailsOutput
     {
+        // $data porte l'objet d'entrée désérialisé, pas le panier : celui-ci se retrouve par l'URL,
+        // du même geste que le provider. `previous_data` décrit l'état d'une ressource avant
+        // modification, sur une mise à jour : s'y fier depuis un Post n'est promis par rien.
         $cart = $this->cartService->findOneById($uriVariables['id']);
 
-        return $this->cartService->toDetails($this->cartService->open($cart));
+        return $this->cartService->toDetails($this->cartService->addLine($cart, $data));
     }
 }

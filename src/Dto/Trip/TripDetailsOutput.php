@@ -1,15 +1,15 @@
 <?php
 
-
 namespace App\Dto\Trip;
+
 use ApiPlatform\Metadata\ApiProperty;
 use App\Dto\City\CityListOutput;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class TripDetailsOutput extends TripListOutput {
-
+// un détail EST un résumé, plus ce qu'on ne montre qu'une fois : l'héritage dit ça du domaine
+final class TripDetailsOutput extends TripListOutput
+{
     public function __construct(
-
         Uuid $id,
         CityListOutput $origin,
         CityListOutput $destination,
@@ -17,19 +17,26 @@ final readonly class TripDetailsOutput extends TripListOutput {
         int $duration,
         int $price,
 
-        #[ApiProperty(description: "Poids maximale du baggage")]
-        public ?int $maxBaggageWeightKg,
+        #[ApiProperty(schema: [
+            'type' => 'integer',
+            'description' => 'Franchise de bagage, en kilogrammes.',
+            'minimum' => 0,
+        ])]
+        public readonly int $maxBaggageWeightKg,
 
-        #[ApiProperty(description: "Modèle de la catapulte")]
-        public null|string $catapultModel,
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'description' => 'Modèle de catapulte du lancer.',
+        ])]
+        public readonly string $catapultModel,
 
-        #[ApiProperty(description: "Tableau d'information du voyage")]
-        public null|string $boardingInfo
-    )
-    {
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'description' => 'Consignes d\'embarquement.',
+        ])]
+        public readonly string $boardingInfo,
+    ) {
+        // les six champs du résumé ne font que traverser : ils repartent tels quels au parent
         parent::__construct($id, $origin, $destination, $departureAt, $duration, $price);
-
-
     }
-
 }

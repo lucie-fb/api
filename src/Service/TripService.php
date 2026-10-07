@@ -11,12 +11,12 @@ use App\Exception\Trip\TripNotFoundException;
 use App\Repository\TripRepository;
 use Symfony\Component\Uid\Uuid;
 
-readonly class TripService
+class TripService
 {
     // ni le repository ni le service des villes ne sont construits ici, ils sont demandés au conteneur
     public function __construct(
-        private TripRepository $trips,
-        private CityService    $cityService,
+        private readonly TripRepository $tripRepository,
+        private readonly CityService $cityService,
     ) {
     }
 
@@ -26,7 +26,6 @@ readonly class TripService
      * @return Trip[]
      *
      * @throws CityNotFoundException when either end of the route carries no city
-     * @throws \DateMalformedStringException
      */
     public function search(TripSearchInput $input): array
     {
@@ -37,7 +36,7 @@ readonly class TripService
         // la validation a garanti la forme de la date : la conversion arrive après, ici
         $day = new \DateTimeImmutable($input->date);
 
-        return $this->trips->search($origin, $destination, $day);
+        return $this->tripRepository->search($origin, $destination, $day);
     }
 
     /**
@@ -46,28 +45,13 @@ readonly class TripService
     public function toList(Trip $trip): TripListOutput
     {
         return new TripListOutput(
-            $trip->getId(),
-            // la transformation d'une ville reste au domaine des villes, des deux côtés du trajet
-            $this->cityService->toList($trip->getOrigin()),
-            $this->cityService->toList($trip->getDestination()),
-            $trip->getDepartureAt(),
-            $trip->getDuration(),
-            $trip->getPrice(),
-        );
-    }
-
-    public function toDetails(Trip $trip): TripDetailsOutput
-    {
-        return new TripDetailsOutput(
             id: $trip->getId(),
+            // la transformation d'une ville reste au domaine des villes, des deux côtés du trajet
             origin: $this->cityService->toList($trip->getOrigin()),
             destination: $this->cityService->toList($trip->getDestination()),
             departureAt: $trip->getDepartureAt(),
             duration: $trip->getDuration(),
             price: $trip->getPrice(),
-            maxBaggageWeightKg: $trip->getCatapultModel()->maxBaggageWeightKg(),
-            catapultModel: $trip->getCatapultModel()->value,
-            boardingInfo: $trip->getBoardingInfo(),
         );
     }
 
@@ -79,13 +63,32 @@ readonly class TripService
     public function findOneById(Uuid $id): Trip
     {
         // find() est héritée de Doctrine : rien à écrire dans le repository pour un accès par clé
-        $trip = $this->trips->find($id);
+        $trip = $this->tripRepository->find($id);
 
-        if (!$trip) {
+        if (null === $trip) {
             throw new TripNotFoundException();
         }
 
         return $trip;
     }
 
+    /**
+     * Maps a trip onto the payload served by the item endpoint.
+     */
+    public function toDetails(Trip $trip): TripDetailsOutput
+    {
+        return new TripDetailsOutput(
+            id: $trip->getId(),
+            origin: $this->cityService->toList($trip->getOrigin()),
+            destination: $this->cityService->toList($trip->getDestination()),
+            departureAt: $trip->getDepartureAt(),
+            duration: $trip->getDuration(),
+            price: $trip->getPrice(),
+            // la franchise ne vient d'aucune colonne : c'est le modèle de catapulte qui la décide
+            maxBaggageWeightKg: $trip->getCatapultModel()->maxBaggageWeightKg(),
+            // le cas d'enum sort par sa valeur de chaîne, pas par son nom de cas
+            catapultModel: $trip->getCatapultModel()->value,
+            boardingInfo: $trip->getBoardingInfo(),
+        );
+    }
 }

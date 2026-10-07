@@ -14,8 +14,6 @@ class EmailAlreadyUsedException extends HttpException
     {
         // le message ne porte pas l'adresse : il finirait dans le journal,
         // que la règle de cette étape veut vide de toute donnée personnelle
-        parent::__construct(
-            Response::HTTP_NOT_FOUND,
-            'This email address is already registered.');
+        parent::__construct(Response::HTTP_CONFLICT, 'Adresse email déjà utilisée');
     }
 }

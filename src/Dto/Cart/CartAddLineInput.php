@@ -7,13 +7,24 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class CartAddLineInput
 {
-    #[ApiProperty(description: "Identifiant de lancer à ajouter.")]
-    #[Assert\NotBlank]
-    #[Assert\Uuid]
-    public string $tripId;
+    public function __construct(
+        #[Assert\NotBlank]
+        #[Assert\Uuid]
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'format' => 'uuid',
+            'description' => 'Identifiant du lancer à ajouter.',
+        ], required: true)]
+        public string $tripId,
 
-    #[ApiProperty(description: "Nombre de places. Chaque place donnera un billet au paiement")]
-    #[Assert\NotBlank]
-    #[Assert\Positive]
-    public ?int $passengers = 1;
+        #[Assert\NotBlank]
+        #[Assert\Positive]
+        #[ApiProperty(schema: [
+            'type' => 'integer',
+            'description' => 'Nombre de places. Chaque place donnera un billet au paiement.',
+            'minimum' => 1,
+        ], required: true)]
+        public int $passengers,
+    ) {
+    }
 }

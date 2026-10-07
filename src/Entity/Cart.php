@@ -8,12 +8,17 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Dto\Cart\CartAddLineInput;
 use App\Dto\Cart\CartDetailsOutput;
+use App\Dto\Cart\CartPayInput;
+use App\Dto\Cart\CartPayOutput;
 use App\Entity\Enum\CartStatus;
 use App\Entity\Impl\AbstractEntity;
 use App\Repository\CartRepository;
+use App\State\Cart\CartAddLineProcessor;
 use App\State\Cart\CartCollectionProvider;
 use App\State\Cart\CartOpenProcessor;
+use App\State\Cart\CartPayProcessor;
 use App\State\Cart\CartProvider;
+use App\State\Cart\CartRemoveLineProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -45,15 +50,27 @@ use Symfony\Component\Uid\Uuid;
         processor: CartAddLineProcessor::class,
         // le rendez-vous suivant explique cette ligne et la met à l'épreuve
         security: "object.getCreatedBy() == user",
-        #openapi: new OpenApiOperation(
-          #  summary: 'Adds a line to the cart'
-        #)
+    #openapi: new OpenApiOperation(
+    #  summary: 'Adds a line to the cart'
+    #)
     ),
     new Delete(
         uriTemplate: '/carts/{id}/items/{itemId}',
         provider: CartProvider::class,
         processor: CartRemoveLineProcessor::class,
         security: "object.getCreatedBy() == user",
+    ),
+    new Post(
+        uriTemplate: '/carts/{id}/pay',
+        input: CartPayInput::class,
+        output: CartPayOutput::class,
+        // le provider et l'expression de l'étape 7, sans rien y changer : régler porte sur la
+        // même ressource que composer, le panier
+        provider: CartProvider::class,
+        processor: CartPayProcessor::class,
+        security: "object.getCreatedBy() == user",
+        // le contrat déclare 200 : on ne crée pas de ressource adressable, on règle un panier
+        status: 200,
     ),
 ])]
 #[ORM\Entity(repositoryClass: CartRepository::class)]

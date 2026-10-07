@@ -13,9 +13,6 @@ class TripNotFoundException extends HttpException
     public function __construct()
     {
         // le message ne porte pas l'identifiant : il finirait dans le journal
-        parent::__construct(
-            Response::HTTP_NOT_FOUND,
-            'No trip carries this identifier.',
-            );
+        parent::__construct(Response::HTTP_NOT_FOUND, 'Lancer non trouvé');
     }
 }

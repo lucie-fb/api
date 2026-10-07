@@ -15,7 +15,7 @@ class CityService
 
     // le repository n'est pas construit ici, il est demandé au conteneur
     public function __construct(
-        private readonly CityRepository $cities,
+        private readonly CityRepository $cityRepository,
     ) {
     }
 
@@ -36,7 +36,7 @@ class CityService
         // programmation défensive : un service de domaine ne présume pas que son appelant a validé
         $boundedLimit = min(self::MAX_LIMIT, max(1, $limit ?? self::DEFAULT_LIMIT));
 
-        return $this->cities->search($pattern, $boundedLimit);
+        return $this->cityRepository->search($pattern, $boundedLimit);
     }
 
     /**
@@ -44,15 +44,21 @@ class CityService
      */
     public function toList(City $city): CityListOutput
     {
-        return new CityListOutput($city->getId(), $city->getName());
+        return new CityListOutput(
+            id: $city->getId(),
+            name: $city->getName(),
+        );
     }
 
     /**
+     * Returns the city carrying this identifier.
+     *
      * @throws CityNotFoundException when no city carries this identifier
      */
-    public function findOneById(Uuid $id): City {
+    public function findOneById(Uuid $id): City
+    {
         // find() est héritée de Doctrine : rien à écrire dans le repository pour un accès par clé
-        $city = $this->cities->find($id);
+        $city = $this->cityRepository->find($id);
 
         if (null === $city) {
             throw new CityNotFoundException();
@@ -60,6 +66,4 @@ class CityService
 
         return $city;
     }
-
-
 }

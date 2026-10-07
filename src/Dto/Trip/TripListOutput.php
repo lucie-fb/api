@@ -6,27 +6,41 @@ use ApiPlatform\Metadata\ApiProperty;
 use App\Dto\City\CityListOutput;
 use Symfony\Component\Uid\Uuid;
 
-readonly class TripListOutput
+// pas de `final` : TripDetailsOutput hérite de cette classe pour ajouter les champs du détail
+class TripListOutput
 {
     public function __construct(
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'format' => 'uuid',
+            'description' => 'Identifiant du lancer.',
+        ])]
+        public readonly Uuid $id,
 
-        #[ApiProperty(description: "Identifiant de la ville d'orgine")]
-        public Uuid $id,
+        #[ApiProperty(description: 'Ville de départ.')]
+        public readonly CityListOutput $origin,
 
-        #[ApiProperty(description: "Origine")]
-        public CityListOutput $origin,
+        #[ApiProperty(description: 'Ville d\'arrivée.')]
+        public readonly CityListOutput $destination,
 
-        #[ApiProperty(description: "Destination")]
-        public CityListOutput $destination,
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'format' => 'date-time',
+            'description' => 'Date et heure de départ.',
+        ])]
+        public readonly \DateTimeImmutable $departureAt,
 
-        #[ApiProperty(description: "Date de départ du voyage")]
-        public \DateTimeImmutable $departureAt,
+        #[ApiProperty(schema: [
+            'type' => 'integer',
+            'description' => 'Durée du vol, en minutes.',
+        ])]
+        public readonly int $duration,
 
-        #[ApiProperty(description: "Durée du voyage")]
-        public int $duration,
-
-        #[ApiProperty(description: "Prix du voyage")]
-        public int $price,
+        #[ApiProperty(schema: [
+            'type' => 'integer',
+            'description' => 'Prix du billet, en centimes.',
+        ])]
+        public readonly int $price,
     ) {
     }
 }

@@ -8,7 +8,7 @@ use App\Dto\Cart\CartDetailsOutput;
 use App\Entity\User;
 use App\Service\CartService;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * @implements ProcessorInterface<mixed, CartDetailsOutput>
@@ -28,9 +28,11 @@ final class CartOpenProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
 
+        // l'opération exige déjà ROLE_USER : ce refus ne sert qu'à ramener le type au User du domaine
         if (!$user instanceof User) {
-            throw new AccessDeniedHttpException();
+            throw new AccessDeniedException();
         }
+
         return $this->cartService->toDetails($this->cartService->open($user));
     }
 }

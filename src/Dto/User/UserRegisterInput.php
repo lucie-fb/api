@@ -7,19 +7,52 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserRegisterInput
 {
-    #[ApiProperty(description: "Adresse de connexion du compte à créer. Deux comptes ne peuvent pas la partager.")]
-    #[Assert\NotBlank]
-    #[Assert\Email]
-    public ?string $email = null;
+    public function __construct(
+        #[Assert\NotBlank]
+        #[Assert\Email]
+        #[Assert\Length(min: 3, max: 255)]
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'format' => 'email',
+            'description' => 'L\'email de l\'utilisateur (doit être unique)',
+            'minLength' => 3,
+            'maxLength' => 255,
+            'example' => 'user@example.com',
+        ], required: true)]
+        public string $email,
 
-    #[ApiProperty(description: "Mot de passe en clair, haché avant enregistrement. Il ne ressort jamais, ni dans une réponse ni dans les journaux.")]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 8)]
-    public ?string $password = null;
+        #[Assert\NotBlank]
+        #[Assert\PasswordStrength]
+        #[Assert\Length(min: 8, max: 255)]
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'description' => 'Le mot de passe de l\'utilisateur (doit être sécurisé)',
+            'format' => 'password',
+            'minLength' => 8,
+            'maxLength' => 255,
+            'example' => 'MonSuperMotDePasse',
+        ], required: true)]
+        public string $password,
 
-    #[ApiProperty(description: "Prénom du voyageur. Facultatif.")]
-    public ?string $firstName = null;
+        #[Assert\NotBlank(allowNull: true)]
+        #[Assert\Length(min: 3, max: 255)]
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'description' => 'Le prénom de l\'utilisateur',
+            'minLength' => 3,
+            'maxLength' => 255,
+        ])]
+        public null|string $firstName = null,
 
-    #[ApiProperty(description: "Nom du voyageur. Facultatif.")]
-    public ?string $lastName = null;
+        #[Assert\NotBlank(allowNull: true)]
+        #[Assert\Length(min: 3, max: 255)]
+        #[ApiProperty(schema: [
+            'type' => 'string',
+            'description' => 'Le nom de l\'utilisateur',
+            'minLength' => 3,
+            'maxLength' => 255,
+        ])]
+        public null|string $lastName = null,
+    ) {
+    }
 }

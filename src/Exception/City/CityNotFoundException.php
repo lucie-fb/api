@@ -13,8 +13,6 @@ class CityNotFoundException extends HttpException
     public function __construct()
     {
         // le message ne porte pas l'identifiant : il finirait dans le journal
-        parent::__construct(
-            Response::HTTP_NOT_FOUND,
-            'No city carries this identifier.');
+        parent::__construct(Response::HTTP_NOT_FOUND, 'Ville non trouvée');
     }
 }
